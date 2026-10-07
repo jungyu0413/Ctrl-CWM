@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ctrl-CWM Crowd World Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 1180px container. Each section opens with its heading in a narrow left column and its text on the
+   right (stacks below 960px). Videos sit in dark "decks" that stay dark in both themes. Colours follow the paper's
+   figures: blue = with control (Ctrl-CWM), red = without control, green = learned dynamics. */
+:root {
+  --bg: #f5f6f4;
+  --surface: #ffffff;
+  --ink: #16191d;
+  --muted: #5b626b;
+  --line: #d9ddd8;
+  --deck: #101316;
+  --deck-2: #1b2024;
+  --deck-line: #2c3338;
+  --deck-ink: #eef0ee;
+  --deck-muted: #9aa3a8;
+  --ctrl: #2a6fd1;
+  --free: #d23a33;
+  --dyn: #1f9d68;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --accent: var(--ctrl);
+  --f-display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --container: 1180px;
+  --measure: 68ch;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1214; --surface: #171b1e; --ink: #e9ecea; --muted: #9ba3a8; --line: #2a3034;
+    --deck: #080a0b; --deck-2: #161b1e; --deck-line: #272e33;
+    --ctrl: #4f93ec; --free: #ff5c54; --dyn: #34c58a; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1214; --surface: #171b1e; --ink: #e9ecea; --muted: #9ba3a8; --line: #2a3034;
+  --deck: #080a0b; --deck-2: #161b1e; --deck-line: #272e33;
+  --ctrl: #4f93ec; --free: #ff5c54; --dyn: #34c58a; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 1.075rem/1.62 var(--f-body); margin: 0; }
+.page { max-width: var(--container); margin-inline: auto; padding-inline: 24px; }
+@media (max-width: 520px) { .page { padding-inline: 16px; } }
+.prose { max-width: var(--measure); display: grid; gap: 16px; min-width: 0; }
+.intro { display: grid; gap: 14px; }
+.intro .head { display: grid; gap: 12px; align-content: start; min-width: 0; }
+@media (min-width: 960px) {
+  .intro { grid-template-columns: minmax(0, 330px) minmax(0, 1fr); column-gap: 56px; }
+  .intro h2 { font-size: 1.85rem; }
+}
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.12; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.05rem); font-weight: 700; }
+h3 { font-size: 1.12rem; font-weight: 600; }
+p { margin: 0; text-wrap: pretty; }
+.nw { white-space: nowrap; }
+a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+code { font-family: var(--f-mono); font-size: 0.88em; }
+.eyebrow { font: 600 0.74rem/1 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+section { padding-block: 60px; border-top: 1px solid var(--line); display: grid; gap: 26px; }
+.abstract-text p { text-align: justify; hyphens: manual; }
+/* the abstract spans the full page width: heading on top, text edge to edge */
+#abstract .intro { grid-template-columns: minmax(0, 1fr); }
+/* results sections: heading only, one line across the page */
+#control .intro, #more .intro, #ego .intro, #results .intro { grid-template-columns: minmax(0, 1fr); }
+
+#abstract .prose.abstract-text { max-width: none; }
+#abstract .abstract-text p { font-size: 1.04rem; line-height: 1.72; }
+@media (max-width: 600px) { .abstract-text p { text-align: left; } }
+
+/* ---------- hero ---------- */
+.hero { padding-block: 56px 32px; display: grid; gap: 18px; }
+.hero h1 { font-size: clamp(1.85rem, 1.25rem + 2.4vw, 3.15rem); font-weight: 700; max-width: 26ch; }
+.hero .sub { font-family: var(--f-display); font-size: clamp(1.05rem, 0.98rem + 0.4vw, 1.28rem); line-height: 1.5; color: var(--muted); max-width: 62ch; }
+.hero .sub b { color: var(--ctrl); }
+.authors { display: flex; flex-wrap: wrap; gap: 4px 26px; font: 600 1.08rem/1.4 var(--f-display); }
+.authors a { text-decoration: none; border-bottom: 2px solid transparent; }
+.authors a:hover { border-bottom-color: var(--accent); }
+.authors sup, .affil sup { font: 600 0.72rem/1 var(--f-mono); color: var(--muted); margin-left: 2px; }
+.affil { display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--muted); font: 500 0.95rem/1.4 var(--f-display); }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); font: 600 0.9rem/1 var(--f-display); text-decoration: none; cursor: pointer; }
+.btn[aria-disabled="true"] { color: var(--muted); cursor: default; }
+.btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ctrl); }
+
+/* ---------- decks ---------- */
+.deck { background: var(--deck); color: var(--deck-ink); border-radius: 16px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.vbox { position: relative; border-radius: 10px; overflow: hidden; background: #000; }
+.vbox video { width: 100%; max-width: 100%; display: block; aspect-ratio: var(--ar, 32/9); height: auto; background: #000; }
+.vbox .tag { position: absolute; top: 10px; font: 600 0.68rem/1 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase;
+  color: #fff; padding: 6px 9px; border-radius: 999px; pointer-events: none; }
+.vbox .tag.l { left: 10px; background: rgba(210, 58, 51, .9); }
+.vbox .tag.r { left: calc(50% + 10px); background: rgba(42, 111, 209, .92); }
+.vbox .tag i { font-style: normal; }
+@media (max-width: 560px) { .vbox .tag i { display: none; } .vbox .tag { font-size: 0.58rem; padding: 4px 6px; top: 6px; } .vbox .tag.l { left: 6px; } .vbox .tag.r { left: calc(50% + 6px); } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 500 0.8rem/1.3 var(--f-mono); color: var(--deck-muted); padding: 2px 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
+.cap { color: var(--deck-muted); font: 400 0.84rem/1.55 var(--f-mono); padding: 0 4px; }
+.cap b { color: var(--deck-ink); font-weight: 600; }
+
+/* ---------- player ---------- */
+.player { display: grid; gap: 18px; }
+.group { display: grid; gap: 8px; min-width: 0; }
+.group > .lab { font: 600 0.7rem/1 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--deck-muted); }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 720px) { .seg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.seg button { font: 600 0.84rem/1.1 var(--f-display); color: var(--deck-ink); background: var(--deck-2); border: 1px solid var(--deck-line);
+  border-radius: 8px; padding: 10px 8px; cursor: pointer; min-width: 0; }
+.seg button[aria-pressed="true"] { background: var(--deck-ink); color: #0c0f11; border-color: var(--deck-ink); }
+.seg button small { display: block; font: 500 0.68rem/1.2 var(--f-mono); opacity: .7; margin-top: 3px; }
+.scenes { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 760px) { .scenes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.scenes button { padding: 0; border: 2px solid transparent; border-radius: 8px; background: none; cursor: pointer; overflow: hidden; text-align: left; color: var(--deck-ink); min-width: 0; }
+.scenes button img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; object-position: right center; }
+.scenes button span { display: block; font: 600 0.7rem/1.2 var(--f-mono); padding: 6px 7px; background: var(--deck-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scenes button[aria-pressed="true"] { border-color: var(--ctrl); }
+.src { font: 400 0.74rem/1.45 var(--f-mono); color: var(--deck-muted); padding: 0 4px; }
+
+/* ---------- pov pair ---------- */
+.pov { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .pov { grid-template-columns: minmax(0, 1fr); } }
+.pov .lab { font: 600 0.7rem/1 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--deck-muted); margin: 0 2px 8px; }
+.deckbtn { font: 600 0.8rem/1 var(--f-display); color: var(--deck-ink); background: var(--deck-2); border: 1px solid var(--deck-line); border-radius: 999px; padding: 8px 14px; cursor: pointer; justify-self: start; }
+
+/* ---------- paper figure ---------- */
+.paperfig { margin: 0; display: grid; gap: 12px; min-width: 0; }
+.paperfig .frame { display: block; background: #ffffff; border: 1px solid var(--line); border-radius: 14px; padding: clamp(10px, 2vw, 22px); overflow-x: auto; }
+.paperfig img { display: block; width: 100%; height: auto; }
+.paperfig figcaption { color: var(--muted); font-size: 0.95rem; max-width: 100ch; }
+.twofig { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .twofig { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- method ---------- */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; counter-reset: s; padding: 0; margin: 0; }
+@media (max-width: 860px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.steps li { list-style: none; border-top: 3px solid var(--c, var(--ink)); padding-top: 12px; min-width: 0; display: grid; gap: 6px; align-content: start; }
+.steps li::before { counter-increment: s; content: "Stage " counter(s); font: 600 0.72rem/1 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.steps p { font-size: 0.95rem; color: var(--muted); }
+.formula { font: 400 0.95rem/1.6 var(--f-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; white-space: nowrap; }
+.formula .why { display: block; white-space: normal; font: 400 0.92rem/1.5 var(--f-body); color: var(--muted); margin-top: 6px; }
+
+/* ---------- results ---------- */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { border-left: 3px solid var(--ctrl); padding: 2px 0 2px 14px; display: grid; gap: 4px; min-width: 0; }
+.kpi b { font: 700 clamp(1.2rem, 0.95rem + 1vw, 1.6rem)/1.15 var(--f-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kpi span { font-size: 0.9rem; color: var(--muted); }
+.tscroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font: 400 0.86rem/1.3 var(--f-mono); font-variant-numeric: tabular-nums; min-width: 720px; }
+th, td { padding: 9px 13px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; font-family: var(--f-display); font-weight: 600; }
+thead th { font: 600 0.7rem/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+tr.grp td { font: 600 0.7rem/1 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: var(--bg); text-align: left; }
+tr.ours td { color: var(--ctrl); }
+tr.ours td:first-child { font-weight: 700; }
+td.b { font-weight: 700; }
+td.u { text-decoration: underline; text-underline-offset: 3px; }
+tbody tr:last-child td { border-bottom: 0; }
+.tnote { color: var(--muted); font-size: 0.92rem; max-width: 100ch; }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 8px; display: grid; gap: 8px; min-width: 0; }
+.chart-legend { display: flex; gap: 6px 18px; flex-wrap: wrap; font: 500 0.8rem/1.3 var(--f-mono); color: var(--muted); }
+.chart-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.chart-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font: 500 12px var(--f-mono); }
+.chart text.val { fill: var(--ink); font-weight: 600; }
+.chart line.grid { stroke: var(--line); }
+.tip { position: fixed; z-index: 9; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 0.78rem/1.3 var(--f-mono);
+  padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .12s; white-space: nowrap; }
+
+pre.bib { font: 400 0.82rem/1.55 var(--f-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; margin: 0; }
+footer { padding-block: 32px 56px; color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Crowd simulation · world models · 2026</div>
+    <h1>Controllable Crowd Generation through World-Model Planning</h1>
+    <p class="sub"><b>Ctrl-CWM</b> learns how people move from real pedestrian video, then plans every step in imagination, so a new objective can steer a running crowd without retraining.</p>
+    <div class="authors">
+      <a href="https://jungyu0413.github.io/" target="_blank" rel="noopener">JunGyu Lee<sup>1</sup></a>
+      <a href="https://jsshin.com/" target="_blank" rel="noopener">Jisu Shin<sup>2</sup></a>
+      <a href="https://www.seunghyunshin.com/" target="_blank" rel="noopener">Seunghyun Shin<sup>2</sup></a>
+      <a href="https://scholar.google.com/citations?user=Ei00xroAAAAJ&amp;hl=ko" target="_blank" rel="noopener">Hae-Gon Jeon<sup>1,*</sup></a>
+    </div>
+    <div class="affil"><span><sup>1</sup>Yonsei University</span><span><sup>2</sup>GIST</span><span><sup>*</sup>Corresponding author</span></div>
+    <div class="links">
+      <a class="btn" aria-disabled="true"><span class="dot"></span>arXiv · coming soon</a>
+      <a class="btn" aria-disabled="true">Code · coming soon</a>
+      <a class="btn" href="#control">Interactive comparison</a>
+      <a class="btn" href="#bibtex">BibTeX</a>
+    </div>
+  </header>
+
+  <div class="deck">
+    <div class="vbox">
+      <video id="hero" src="v/event_crash.mp4" poster="v/event_crash.jpg" autoplay muted loop playsinline preload="metadata"></video>
+      <span class="tag l">Without control</span><span class="tag r">With control<i> · Ctrl-CWM</i></span>
+    </div>
+    <p class="cap"><b>A collision mid-scene.</b> Both sides are the same Ctrl-CWM rollout. At the moment of impact, only the right side is given an avoidance objective, with no retraining.</p>
+  </div>
+
+  <section id="abstract">
+    <div class="intro">
+      <div class="head"><div class="eyebrow">Abstract</div><h2>Crowds that adapt when the world changes</h2></div>
+      <div class="prose abstract-text">
+        <p>Crowd simulation plays a central role in robot navigation, autonomous driving, and urban planning. For these applications, realistic simulation requires crowds to adapt their behavior to environmental changes and user objectives. However, existing methods that rely on predefined control settings have limited flexibility in accommodating new user-specified objectives. To address this limitation, we propose <b>Ctrl-CWM</b>, a multi-agent Controllable Crowd World Model that integrates crowd generation and run-time control. Our key idea is to adapt the world-model principle of planning using imagined futures to crowd simulation. To this end, Ctrl-CWM consists of an encoder that learns a representation of human motion dynamics, an actor that proposes pedestrian displacements, a critic that evaluates imagined crowd trajectories, and a planner that selects actions. We first learn human motion dynamics through trajectory prediction on real-world pedestrian videos and then freeze the encoder to preserve them. Using this representation, the actor generates imagined crowd trajectories through repeated state updates, and the planner combines the critic's scores with user costs to select actions. Repeated planning advances the simulated crowd, while additional user costs introduce new control objectives without retraining. We extensively evaluate crowd generation under varied agent arrival conditions and run-time control across avoidance and attraction scenarios. Ctrl-CWM outperforms the state-of-the-art method on most crowd realism and collision metrics, and adapts crowd behaviors to user-specified objectives introduced during simulation.</p>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><b>−22% DTW</b><span>vs. CrowdES, average of 7 benchmarks (random-surface arrivals)</span></div>
+      <div class="kpi"><b>9 / 16</b><span>average scores ranked first, second on the rest</span></div>
+      <div class="kpi"><b>0.950</b><span>avoidance compliance, multiple zones (CrowdES 0.579)</span></div>
+      <div class="kpi"><b>~10 ms</b><span>per planning call (K = 16, I = 4, H = 4)</span></div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="intro">
+      <div class="head"><div class="eyebrow">Method</div><h2>Imagine, rank, then act</h2></div>
+      <div class="prose">
+        <p>Pedestrian videos record how people moved, but they define no actions and no rewards. Ctrl-CWM builds both from trajectory prediction and then plans over imagined crowd futures.</p>
+      </div>
+    </div>
+    <figure class="paperfig">
+      <a class="frame" href="figs/overview.png" target="_blank" rel="noopener"><img src="figs/overview.png" alt="Overview: learning the world model from prediction, learning behavior in imagination, and planning and control with a user command" width="1642" height="464"></a>
+      <figcaption>Trajectory prediction trains the state encoder h<sub>θ</sub> on real pedestrian data, which is then frozen. The actor π<sub>ψ</sub> and critic V<sub>φ</sub> learn over imagined rollouts on this representation, and CEM adds a user cost to the critic score for run-time control.</figcaption>
+    </figure>
+    <ol class="steps">
+      <li style="--c:var(--dyn)"><h3>World model from prediction</h3><p>A scene U-Net and an interaction encoder (attention and a GRU, fused by FiLM) learn an agent-centric state through goal, waypoint, and one-step heatmap prediction on real trajectories. The encoder is then frozen to keep the learned human dynamics.</p></li>
+      <li style="--c:var(--free)"><h3>Behavior in imagination</h3><p>The actor learns one-step displacements through 12-step imagined rollouts with soft-DTW, kinematic, and adversarial losses. The critic learns to rank imagined futures by realism and collisions with a listwise objective.</p></li>
+      <li style="--c:var(--ctrl)"><h3>Planning and control</h3><p>At every step, CEM samples displacements around the actor's proposal, rolls each forward in imagination, and scores it. A user cost steers the crowd; with the cost at zero the same planner generates crowds.</p></li>
+    </ol>
+    <div class="formula">J = V<sub>φ</sub>(ŝ<sub>t+1:t+H</sub>) − λ<sub>user</sub> · c<sub>user</sub>(ŝ<sub>t+1:t+H</sub>)
+      <span class="why">The critic keeps motion human-like and the user cost encodes the objective, such as avoiding a zone or approaching an attraction.</span></div>
+  </section>
+
+  <section id="control">
+    <div class="intro">
+      <div class="head"><div class="eyebrow">Results</div><h2>Change the objective while the crowd is moving</h2></div>
+    </div>
+    <div class="deck">
+      <div class="player">
+        <div class="vbox">
+          <video id="pv" src="d/av_vehicle.mp4" poster="d/av_vehicle.jpg" autoplay muted loop playsinline preload="metadata"></video>
+          <span class="tag l" id="pvTagL">Without control<i> · CrowdES</i></span><span class="tag r" id="pvTag">With control<i> · Ctrl-CWM</i></span>
+        </div>
+        <div class="group"><div class="lab">Objective</div>
+          <div class="seg" id="cat"></div>
+        </div>
+        <div class="group"><div class="lab">Scene</div><div class="scenes" id="scenes"></div></div>
+      </div>
+      <p class="cap" id="pcap"></p>
+      <p class="src" id="psrc"></p>
+    </div>
+  </section>
+
+  <section id="more">
+    <div class="intro">
+      <div class="head"><div class="eyebrow">Results</div><h2>When something happens mid-scene</h2></div>
+    </div>
+    <div class="deck">
+      <div class="player">
+        <div class="vbox">
+          <video id="pv2" src="v/event_crash.mp4" poster="v/event_crash.jpg" autoplay muted loop playsinline preload="metadata"></video>
+          <span class="tag l">Without control</span><span class="tag r">With control<i> · Ctrl-CWM</i></span>
+        </div>
+        <div class="seg" id="cat2" style="display:none"></div>
+        <div class="group"><div class="lab">Scene</div><div class="scenes" id="scenes2"></div></div>
+      </div>
+      <p class="cap" id="pcap2"></p>
+      <p class="src" id="psrc2"></p>
+    </div>
+  </section>
+
+  <section id="ego">
+    <div class="intro">
+      <div class="head"><div class="eyebrow">Results</div><h2>Through a pedestrian's eyes</h2></div>
+    </div>
+    <div class="deck">
+      <div class="pov">
+        <div><div class="lab">Third-person</div><div class="vbox"><video id="povA" src="v/pov_third.mp4" poster="v/pov_third.jpg" autoplay muted loop playsinline preload="metadata"></video><span class="tag l">Without</span><span class="tag r">With control</span></div></div>
+        <div><div class="lab">Ego-centric</div><div class="vbox"><video id="povB" src="v/pov_ego.mp4" poster="v/pov_ego.jpg" autoplay muted loop playsinline preload="metadata"></video><span class="tag l">Without</span><span class="tag r">With control</span></div></div>
+      </div>
+      <button class="deckbtn" type="button" id="povRestart">Restart both</button>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="intro">
+      <div class="head"><div class="eyebrow">Results</div><h2>Quantitative results</h2></div>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>Crowd generation · average</th><th>Dens.</th><th>Freq.</th><th>Cov.</th><th>Pop.</th><th>Kinem.</th><th>DTW</th><th>Div.</th><th>Col.(%)</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="9">Random-surface arrivals</td></tr>
+        <tr><td>ORCA</td><td>1.044</td><td class="b">0.099</td><td class="b">0.099</td><td>2.659</td><td>1.015</td><td>2.857</td><td>0.196</td><td class="b">0.009</td></tr>
+        <tr><td>CrowdES</td><td class="u">0.746</td><td>0.128</td><td>0.128</td><td class="u">1.871</td><td class="u">0.605</td><td class="u">2.204</td><td class="b">0.294</td><td>3.448</td></tr>
+        <tr class="ours"><td>Ctrl-CWM (ours)</td><td class="b">0.477</td><td class="u">0.111</td><td class="u">0.111</td><td class="b">1.244</td><td class="b">0.545</td><td class="b">1.713</td><td class="u">0.285</td><td class="u">1.739</td></tr>
+        <tr class="grp"><td colspan="9">Diffusion arrivals</td></tr>
+        <tr><td>ORCA</td><td>1.029</td><td>0.106</td><td>0.106</td><td>2.595</td><td>1.198</td><td>3.228</td><td>0.180</td><td class="b">0.065</td></tr>
+        <tr><td>CrowdES</td><td class="u">0.147</td><td class="u">0.052</td><td class="u">0.051</td><td class="b">0.315</td><td class="b">0.525</td><td class="u">2.126</td><td class="u">0.297</td><td>1.930</td></tr>
+        <tr class="ours"><td>Ctrl-CWM (ours)</td><td class="b">0.110</td><td class="b">0.046</td><td class="b">0.046</td><td class="u">0.372</td><td class="u">0.660</td><td class="b">1.738</td><td class="b">0.310</td><td class="u">1.572</td></tr>
+      </tbody></table></div>
+    <p class="tnote">Averages over five ETH–UCY folds, SDD, and GCS (Table 1 of the paper). ORCA optimizes collision avoidance directly and has the lowest collision rate, but the highest density error and DTW.</p>
+
+    <div class="tscroll"><table>
+      <thead><tr><th>Avoidance compliance ↑</th><th>ETH</th><th>HOTEL</th><th>UNIV</th><th>ZARA1</th><th>ZARA2</th><th>SDD</th><th>GCS</th><th>AVG</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="9">Disc zone</td></tr>
+        <tr><td>ORCA + obstacle</td><td class="b">1.000</td><td>−1.154</td><td>0.530</td><td>0.428</td><td class="b">1.000</td><td class="u">0.344</td><td class="b">0.999</td><td>0.450</td></tr>
+        <tr><td>CrowdES + map</td><td>0.599</td><td class="u">0.546</td><td class="u">0.727</td><td class="u">0.469</td><td>0.598</td><td>0.317</td><td>0.436</td><td class="u">0.527</td></tr>
+        <tr class="ours"><td>Ctrl-CWM (ours)</td><td class="u">0.837</td><td class="b">0.988</td><td class="b">0.831</td><td class="b">0.752</td><td class="u">0.714</td><td class="b">0.877</td><td class="u">0.827</td><td class="b">0.832</td></tr>
+        <tr class="grp"><td colspan="9">Rectangle zone</td></tr>
+        <tr><td>ORCA + obstacle</td><td class="b">1.000</td><td>−1.484</td><td>0.526</td><td>−0.049</td><td class="b">1.000</td><td>−1.827</td><td class="u">0.595</td><td>−0.034</td></tr>
+        <tr><td>CrowdES + map</td><td>0.883</td><td class="u">0.808</td><td class="b">0.779</td><td class="u">0.790</td><td>0.824</td><td class="u">0.114</td><td>0.301</td><td class="u">0.643</td></tr>
+        <tr class="ours"><td>Ctrl-CWM (ours)</td><td class="u">0.896</td><td class="b">0.881</td><td class="u">0.683</td><td class="b">0.988</td><td class="u">0.912</td><td class="b">0.934</td><td class="b">0.932</td><td class="b">0.889</td></tr>
+        <tr class="grp"><td colspan="9">Multiple zones</td></tr>
+        <tr><td>ORCA + obstacle</td><td class="u">0.973</td><td class="b">0.999</td><td class="u">0.601</td><td>−1.952</td><td>−0.304</td><td>−0.473</td><td class="u">0.768</td><td>0.087</td></tr>
+        <tr><td>CrowdES + map</td><td>0.479</td><td>0.542</td><td>0.549</td><td class="u">0.781</td><td class="u">0.751</td><td class="u">0.525</td><td>0.424</td><td class="u">0.579</td></tr>
+        <tr class="ours"><td>Ctrl-CWM (ours)</td><td class="b">0.992</td><td class="u">0.997</td><td class="b">0.993</td><td class="b">0.983</td><td class="b">0.971</td><td class="b">0.908</td><td class="b">0.808</td><td class="b">0.950</td></tr>
+      </tbody></table></div>
+    <p class="tnote">Compliance C<sub>avoid</sub> = 1 − occ<sub>cmd</sub>/occ<sub>free</sub>: one means the controlled crowd never enters the zone, zero means no reduction. Ctrl-CWM receives the objective online; the baselines get the obstacle from initialization.</p>
+  </section>
+
+  <section id="bibtex">
+    <div class="intro"><div class="head"><div class="eyebrow">Cite</div><h2>BibTeX</h2></div></div>
+    <pre class="bib" id="bib">@article{lee2026ctrlcwm,
+  title   = {Controllable Crowd Generation through World-Model Planning},
+  author  = {Lee, JunGyu and Shin, Jisu and Shin, Seunghyun and Jeon, Hae-Gon},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</pre>
+    <div><button class="btn" type="button" id="copyBib">Copy BibTeX</button></div>
+  </section>
+
+  <footer>
+    <p>Scene credits: King's Cross 3D map data, Google (Photorealistic 3D Tiles). Tokyo buildings, Project PLATEAU, MLIT Japan (PDL 1.0). Seoul heritage models, Korea Heritage Service (KOGL Type 1). Streets and layout © OpenStreetMap contributors (ODbL). Props by Quaternius, Kenney, and iPoly3D (CC0).</p>
+    <p>Rendered scenes visualize simulated trajectories and are not footage of real people. Demonstration clips are selected rollouts; all numbers come from the full benchmark protocol in the paper.</p>
+  </footer>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const GOOGLE = '3D map data: Google (Photorealistic 3D Tiles).';
+  const PL = 'Buildings: Project PLATEAU, MLIT Japan (PDL 1.0); © OpenStreetMap contributors.';
+  const KH = 'Measured model: Korea Heritage Service (KOGL Type 1); © OpenStreetMap contributors.';
+  const CATS = [
+    { id: 'avoid', name: 'Avoidance', note: 'move around obstacles', tag: 'With control · Ctrl-CWM', scenes: [
+      { v: 'av_vehicle', s: 'Avoiding a vehicle', c: 'A crash at the Shibuya scramble crossing. Pedestrians are guided around the vehicle and the traffic cones.', src: PL },
+      { v: 'av_tree', s: 'Falling obstacle', c: 'A tree falls in front of Heunginjimun (Dongdaemun) while the crowd is moving; pedestrians move around the newly introduced obstacle.', src: KH },
+      { v: 'av_barrier', s: 'Construction barriers', c: 'Pedestrians are steered away from the area enclosed by construction barriers.', src: KH },
+      { v: 'av_plaza', s: 'Barriers in an open plaza', c: 'A barrier ring in the plaza in front of Tokyo Station; pedestrians keep out of the enclosed area.', src: PL } ] },
+    { id: 'attract', name: 'Attraction', note: 'move toward a target', tag: 'With control · Ctrl-CWM', scenes: [
+      { v: 'at_stage', s: 'Street stage, Shibuya', l: 'Without control', c: 'An outdoor stage acts as the target. With the attraction objective, people crossing the plaza stop and gather in front of it like an audience.', src: PL },
+      { v: 'at_fountain', s: 'Gathering at a fountain', c: 'Pedestrians are brought toward a fountain chosen as the gathering point.', src: GOOGLE },
+      { v: 'at_courtyard', s: 'Courtyard fountain', c: 'A fountain in front of Seokjojeon, Deoksugung, acts as the gathering point.', src: KH },
+      { v: 'at_kiosk', s: 'Kiosk, Dongdaemun', l: 'Without control', c: 'A kiosk in front of Heunginjimun is the target. With the objective, pedestrians turn toward it and gather around the stall.', src: KH } ] },
+  ];
+  const state = { cat: 'avoid', i: 0 };
+
+  // size each video box to its clip (side-by-side clips are 32:9)
+  const fit = (v) => v.addEventListener('loadedmetadata', () => { if (v.videoWidth) v.style.setProperty('--ar', `${v.videoWidth} / ${v.videoHeight}`); });
+  document.querySelectorAll('video').forEach(fit);
+
+  const catBox = $('#cat');
+  CATS.forEach((c) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.c = c.id;
+    b.innerHTML = `${c.name}<small>${c.note}</small>`;
+    b.addEventListener('click', () => { state.cat = c.id; state.i = 0; render(); });
+    catBox.appendChild(b);
+  });
+  function render() {
+    const cat = CATS.find((c) => c.id === state.cat);
+    const sc = cat.scenes[state.i];
+    catBox.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.c === state.cat)));
+    const box = $('#scenes');
+    box.textContent = '';
+    box.style.setProperty('--n', String(Math.max(3, cat.scenes.length)));
+    cat.scenes.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(i === state.i));
+      b.innerHTML = `<img alt="" loading="lazy" src="d/${s.v}.jpg"><span>${s.s}</span>`;
+      b.addEventListener('click', () => { state.i = i; render(); });
+      box.appendChild(b);
+    });
+    const v = $('#pv');
+    if (!v.src.endsWith(`d/${sc.v}.mp4`)) { v.poster = `d/${sc.v}.jpg`; v.src = `d/${sc.v}.mp4`; v.play().catch(() => {}); }
+    $('#pvTag').innerHTML = cat.tag.replace(' · ', '<i> · ') + '</i>';
+    $('#pvTagL').innerHTML = sc.l || 'Without control<i> · CrowdES</i>';
+    $('#pcap').innerHTML = `<b>${sc.s}.</b> ${sc.c}`;
+    $('#psrc').textContent = sc.src || '';
+  }
+  render();
+
+
+  // second player: same-model comparisons
+  const MORE = [
+    { id: 'all', name: 'All', note: '', scenes: [
+      { v: 'event_crash', s: 'Collision, Shibuya', c: 'Two cars collide at the crossing while the crowd is moving. Afterwards the uncontrolled pedestrians walk through the wrecked cars, while the controlled ones step around them.', src: 'Buildings: Project PLATEAU, MLIT Japan (PDL 1.0); © OpenStreetMap contributors.' },
+      { v: 'ev_ddm', s: 'Police car hits a truck, Dongdaemun', c: 'A police car runs into a truck on the square in front of Heunginjimun, with a different crowd crossing. Without the objective people walk into the wreck; with it they keep clear of both vehicles.', src: 'Measured model: Korea Heritage Service (KOGL Type 1); © OpenStreetMap contributors.' },
+      { v: 'ev_nyc', s: 'Car stops, New York', c: 'An SUV pulls onto a busy crosswalk and stops. The objective is added the moment it stops: without it pedestrians walk straight through the car, with it they go around the front and back.', src: '© OpenStreetMap contributors (ODbL).' },
+      { v: 'ev_tokyo', s: 'Tree falls, Tokyo Station', c: 'A tree comes down across the station plaza while two groups of commuters are crossing. Without the objective they walk over the trunk; with it they go around its ends.', src: 'Buildings: Project PLATEAU, MLIT Japan (PDL 1.0); © OpenStreetMap contributors.' },
+      { v: 'ev_cdg', s: 'Police car, Changdeokgung', c: 'A police car cuts across the busy square in front of Donhwamun gate and stops. Without the objective people walk through it; with it they go around both sides.', src: 'Measured model: Korea Heritage Service (KOGL Type 1); © OpenStreetMap contributors.' } ] },
+  ];
+  const st2 = { cat: 'all', i: 0 };
+  const cat2 = $('#cat2');
+  MORE.forEach((c) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.c = c.id;
+    b.innerHTML = `${c.name}<small>${c.note}</small>`;
+    b.addEventListener('click', () => { st2.cat = c.id; st2.i = 0; render2(); });
+    cat2.appendChild(b);
+  });
+  function render2() {
+    const cat = MORE.find((c) => c.id === st2.cat), sc = cat.scenes[st2.i], box = $('#scenes2');
+    cat2.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.c === st2.cat)));
+    box.textContent = '';
+    box.style.setProperty('--n', String(Math.max(3, cat.scenes.length)));
+    cat.scenes.forEach((m, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('aria-pressed', String(i === st2.i));
+      b.innerHTML = `<img alt="" loading="lazy" src="v/${m.v}.jpg"><span>${m.s}</span>`;
+      b.addEventListener('click', () => { st2.i = i; render2(); });
+      box.appendChild(b);
+    });
+    const v = $('#pv2');
+    if (!v.src.endsWith(`v/${sc.v}.mp4`)) { v.poster = `v/${sc.v}.jpg`; v.src = `v/${sc.v}.mp4`; v.play().catch(() => {}); }
+    $('#pcap2').innerHTML = `<b>${sc.s}.</b> ${sc.c}`;
+    $('#psrc2').textContent = sc.src || '';
+  }
+  render2();
+
+  // keep the two views of the same rollout in step
+  const a = $('#povA'), b = $('#povB');
+  const sync = () => { if (Math.abs(a.currentTime - b.currentTime) > 0.15) b.currentTime = a.currentTime; };
+  a.addEventListener('timeupdate', sync);
+  a.addEventListener('play', () => { sync(); b.play().catch(() => {}); });
+  a.addEventListener('pause', () => b.pause());
+  $('#povRestart').addEventListener('click', () => { a.currentTime = 0; b.currentTime = 0; a.play().catch(() => {}); b.play().catch(() => {}); });
+
+
+  $('#copyBib').addEventListener('click', () => {
+    const t = $('#bib').textContent;
+    const done = () => { $('#copyBib').textContent = 'Copied'; };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($('#bib')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $('#copyBib').textContent = 'Selected, press Ctrl+C'; };
+    try { navigator.clipboard.writeText(t).then(done, fallback); } catch (e) { fallback(); }
+  });
+})();
+</script>
