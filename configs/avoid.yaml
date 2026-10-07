@@ -1,0 +1,9 @@
+planner: critic
+candidates: 16
+iters: 4
+horizon: 4
+sigma: 1.5
+trials: 20
+emitter: diffusion
+w_user: 10.0
+control_onset: 0.3333

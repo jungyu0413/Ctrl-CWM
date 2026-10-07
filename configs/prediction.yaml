@@ -1,0 +1,8 @@
+epochs: 80
+batch: 1
+accum: 3
+lr: 0.0003
+w_way: 1.0
+w_dyn: 0.5
+grid: 192
+sig: 5.0

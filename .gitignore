@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.DS_Store
+
+# data, outputs and weights
+checkpoints/
+output/
+data/datasets/
+*.pth
+*.pt
+*.pkl
+*.npy
+*.npz
