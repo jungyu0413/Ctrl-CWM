@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://jungyu0413.github.io/Ctrl-CWM/"><strong><code>Project Page</code></strong></a>
-  <a href="#"><strong><code>arXiv (coming soon)</code></strong></a>
+  <a href="https://arxiv.org/abs/2610.09438"><strong><code>arXiv</code></strong></a>
   <a href="https://github.com/jungyu0413/Ctrl-CWM"><strong><code>Source Code</code></strong></a>
   <a href="#-citation"><strong><code>Citation</code></strong></a>
 </p>
@@ -215,7 +215,7 @@ If you find this code useful, please cite our paper:
 @article{lee2026ctrlcwm,
   title   = {Controllable Crowd Generation through World-Model Planning},
   author  = {Lee, JunGyu and Shin, Jisu and Shin, Seunghyun and Jeon, Hae-Gon},
-  journal = {arXiv preprint},
+  journal = {arXiv preprint arXiv:2610.09438},
   year    = {2026}
 }
 ```
